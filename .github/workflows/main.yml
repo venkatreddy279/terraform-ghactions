@@ -1,0 +1,60 @@
+# This is a basic workflow to help you get started with Actions
+
+name: TerraformGitHubActionsDemo
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    
+    
+    env:
+       ARM_CLIENT_ID="3d63cbae-39d5-4a50-9ffc-35e19eb5c49d"
+       ARM_SUBSCRIPTION_ID="ee7721cc-3ef5-46c1-a5da-7de1db7382c5"
+       ARM_TENANT_ID="f3915c9b-d792-4c37-8ea1-1c4be55fc92b"
+       ARM_CLIENT_SECRET=${{ secrets.ARM_CLIENT_SECRET }}
+       AZURE_STORAGE= 'terraformdemo03172021'
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      
+      - name: Azure Login
+        uses: Azure/login@v1
+        with:
+           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Runs a single command using the runners shell
+      - name: Build Terraform State
+        run: chmod +x ./tfstate.sh && ./tfstate.sh ${{ env.AZURE_STORAGE }}
+
+      # Runs a set of commands using the runners shell
+      - name: Hashicorp - Setup Terraform
+        uses: hashicorp/setup-terraform@v1.2.1
+        
+      - name: Terraform Init
+        run: terraform init -backend-config="storazge_account_name=${{ env.AZURE_STORAGE }}"
+        
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+        
+      - name: Terraform Apply
+        run: terraform apply tfplan
+        
+        
+          echo Add other actions to build,
+          echo test, and deploy your project.
